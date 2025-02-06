@@ -10,9 +10,12 @@ app.use(express.json());
 
 // Helper functions
 function isArmstrong(num) {
+  if (num >= 0 && num < 10) return true; // Single-digit numbers are Armstrong numbers
+
   const digits = String(num).split('');
   const power = digits.length;
   const sum = digits.reduce((acc, digit) => acc + Math.pow(Number(digit), power), 0);
+
   return sum === num;
 }
 
@@ -37,8 +40,14 @@ function isPerfect(num) {
 }
 
 function digitSum(num) {
-  return String(num).split('').reduce((acc, digit) => acc + Number(digit), 0);
+  if (num > -10 && num < 10) return num; // Single-digit numbers should return themselves
+  return Math.abs(num)
+    .toString()
+    .split("")
+    .reduce((acc, digit) => acc + Number.parseInt(digit), 0);
 }
+
+
 
 function getProperties(num) {
   const properties = [];
