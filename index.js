@@ -40,37 +40,32 @@ function isPerfect(num) {
 }
 
 function digitSum(num) {
-  if (num > -10 && num < 10) return num; // Single-digit numbers should return themselves
   return Math.abs(num)
     .toString()
     .split("")
-    .reduce((acc, digit) => acc + Number.parseInt(digit), 0);
+    .reduce((acc, digit) => acc + Number(digit), 0);
 }
-
-
 
 function getProperties(num) {
   const properties = [];
-
-  if (isArmstrong(num)) {
-    properties.push('armstrong');
-  }
-
-  properties.push(num % 2 === 0 ? 'even' : 'odd');
-
+  if (isArmstrong(num)) properties.push("armstrong");
+  if (isPrime(num)) properties.push("prime");
+  if (isPerfect(num)) properties.push("perfect");
+  properties.push(num % 2 === 0 ? "even" : "odd");
   return properties;
 }
 
 // Main endpoint
 app.get('/api/classify-number', async (req, res) => {
   const numberStr = req.query.number;
-  const number = parseInt(numberStr);
+  const number = Number(numberStr);
 
   // Input validation
-  if (!numberStr || isNaN(number)) {
+  if (!numberStr || isNaN(number) || !Number.isInteger(number) || number < 0) {
     return res.status(400).json({
       number: numberStr,
-      error: true
+      error: true,
+      message: "Invalid input. Please provide a non-negative integer."
     });
   }
 
@@ -90,17 +85,18 @@ app.get('/api/classify-number', async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error fetching fun fact:', error.message);
     res.status(500).json({
       number,
       error: true,
-      message: 'Internal server error'
+      message: 'Internal server error. Could not retrieve fun fact.'
     });
   }
 });
 
+// Start server
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`🚀 Server running on port ${port}`);
 });
 
 export default app; // For testing purposes
