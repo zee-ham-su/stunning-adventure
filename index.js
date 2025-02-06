@@ -6,107 +6,87 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
-
-// Helper functions
-function isArmstrong(num) {
-  const numStr = String(Math.abs(num));
-  const power = numStr.length;
-  const sum = numStr.split('').reduce((acc, digit) => acc + Math.pow(Number(digit), power), 0);
-  return sum === Math.abs(num);
-}
 
 function isPrime(num) {
   if (num <= 1) return false;
-  const limit = Math.sqrt(num);
-  for (let i = 2; i <= limit; i++) {
-    if (num % i === 0) return false;
+  if (num <= 3) return true;
+
+  if (num % 2 === 0 || num % 3 === 0) return false;
+
+  for (let i = 5; i * i <= num; i += 6) {
+    if (num % i === 0 || num % (i + 2) === 0) return false;
   }
+
   return true;
 }
 
 function isPerfect(num) {
-  if (num <= 1) return false;
-  const limit = Math.sqrt(num);
   let sum = 1;
-  for (let i = 2; i <= limit; i++) {
+  for (let i = 2; i * i <= num; i++) {
     if (num % i === 0) {
-      sum += i;
-      if (i !== num / i) sum += num / i;
+      if (i * i !== num) sum = sum + i + num / i;
+      else sum = sum + i;
     }
   }
-  return sum === num;
-}
-function digitSum(num) {
-  return String(Math.abs(num))
-    .split('')
-    .reduce((acc, digit) => acc + Number(digit), 0);
+  return sum === num && num !== 1;
 }
 
-function getProperties(num) {
+function isArmstrong(num) {
+  let sum = 0;
+  let temp = Math.abs(num);
+  const digits = temp.toString().length;
+
+  while (temp > 0) {
+    const digit = temp % 10;
+    sum += Math.pow(digit, digits);
+    temp = Math.floor(temp / 10);
+  }
+
+  return sum === Math.abs(num);
+}
+
+function digitSum(num) {
+  return Math.abs(num)
+    .toString()
+    .split('')
+    .reduce((acc, curr) => acc + parseInt(curr), 0);
+}
+
+app.get('/api/classify-number', async (req, res) => {
+  const { number } = req.query;
+
+  if (!number || isNaN(number)) {
+    return res.status(400).json({ number, error: true });
+  }
+
+  const num = parseInt(number, 10);
+
+  const isPrimeNumber = isPrime(num);
+  const isPerfectNumber = isPerfect(num);
+  const isArmstrongNumber = isArmstrong(num);
+  const isEven = num % 2 === 0;
   const properties = [];
 
-  if (isArmstrong(num)) {
-    properties.push('armstrong');
-  }
+  if (isArmstrongNumber) properties.push('armstrong');
+  properties.push(isEven ? 'even' : 'odd');
 
-  properties.push(num % 2 === 0 ? 'even' : 'odd');
-
-  return properties;
-}
-
-// Create axios instance with timeout
-const numbersApi = axios.create({
-  timeout: 2000, // Increased to 2 seconds
-  headers: {
-    'Accept': 'text/plain'
-  }
-});
-
-// Main endpoint
-app.get('/api/classify-number', async (req, res) => {
-  const numberStr = req.query.number;
-  const number = parseInt(numberStr);
-
-  // Input validation
-  if (!numberStr || isNaN(number) || number > Number.MAX_SAFE_INTEGER || number < Number.MIN_SAFE_INTEGER) {
-    return res.status(400).json({
-      number: numberStr,
-      error: true
-    });
-  }
   try {
-    // Calculate all properties first
-    const result = {
-      number,
-      is_prime: isPrime(number),
-      is_perfect: isPerfect(number),
-      properties: getProperties(number),
-      digit_sum: digitSum(number)
-    };
+    const funFactResponse = await axios.get(`http://numbersapi.com/${num}/math`);
+    const funFact = funFactResponse.data;
 
-    try {
-      // Fetch fun fact from Numbers API with timeout
-      const response = await numbersApi.get(`http://numbersapi.com/${number}/math`);
-      result.fun_fact = response.data;
-    } catch (apiError) {
-      // Use a fallback fun fact if the API request fails
-      result.fun_fact = `${number} is an interesting number in mathematics.`;
-    }
-
-    res.json(result);
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({
-      number,
-      error: true,
-      message: 'Internal server error'
+    res.json({
+      number: num,
+      is_prime: isPrimeNumber,
+      is_perfect: isPerfectNumber,
+      properties,
+      digit_sum: digitSum(num),
+      fun_fact: funFact,
     });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch fun fact' });
   }
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`API running on http://localhost:${port}`);
 });
-
-export default app;
