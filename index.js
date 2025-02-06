@@ -10,25 +10,22 @@ app.use(express.json());
 
 // Helper functions
 function isArmstrong(num) {
-  if (num >= 0 && num < 10) return true; // Single-digit numbers are Armstrong numbers
-
-  const digits = String(num).split('');
+  const digits = String(Math.abs(num)).split('');
   const power = digits.length;
   const sum = digits.reduce((acc, digit) => acc + Math.pow(Number(digit), power), 0);
-
-  return sum === num;
+  return sum === Math.abs(num);
 }
 
 function isPrime(num) {
-  if (num <= 1) return false;
-  for (let i = 2; i <= Math.sqrt(num); i++) {
-    if (num % i === 0) return false;
+  if (Math.abs(num) <= 1) return false;
+  for (let i = 2; i <= Math.sqrt(Math.abs(num)); i++) {
+    if (Math.abs(num) % i === 0) return false;
   }
   return true;
 }
 
 function isPerfect(num) {
-  if (num <= 1) return false;
+  if (num <= 0) return false; // Perfect numbers are always positive
   let sum = 1;
   for (let i = 2; i <= Math.sqrt(num); i++) {
     if (num % i === 0) {
@@ -40,8 +37,7 @@ function isPerfect(num) {
 }
 
 function digitSum(num) {
-  return Math.abs(num)
-    .toString()
+  return String(Math.abs(num))
     .split("")
     .reduce((acc, digit) => acc + Number(digit), 0);
 }
@@ -60,19 +56,22 @@ app.get('/api/classify-number', async (req, res) => {
   const numberStr = req.query.number;
   const number = Number(numberStr);
 
-  // Input validation
-  if (!numberStr || isNaN(number) || !Number.isInteger(number) || number < 0) {
+  // Input validation: Only accept integers, reject decimals
+  if (!numberStr || isNaN(number) || !Number.isInteger(number)) {
     return res.status(400).json({
       number: numberStr,
       error: true,
-      message: "Invalid input. Please provide a non-negative integer."
+      message: "Invalid input. Please provide an integer."
     });
   }
 
   try {
-    // Fetch fun fact from Numbers API
-    const response = await axios.get(`http://numbersapi.com/${number}/math`);
-    const funFact = response.data;
+    // Fetch fun fact (only for positive numbers)
+    let funFact = "Fun facts are only available for positive numbers.";
+    if (number >= 0) {
+      const response = await axios.get(`http://numbersapi.com/${number}/math`);
+      funFact = response.data;
+    }
 
     const result = {
       number,
