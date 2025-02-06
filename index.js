@@ -37,10 +37,7 @@ function isPerfect(num) {
 }
 
 function digitSum(num) {
-  return Math.abs(num)
-    .toString()
-    .split("")
-    .reduce((acc, digit) => acc + Number.parseInt(digit), 0)
+  return String(num).split('').reduce((acc, digit) => acc + Number(digit), 0);
 }
 
 function getProperties(num) {
@@ -72,19 +69,6 @@ app.get('/api/classify-number', async (req, res) => {
     // Fetch fun fact from Numbers API
     const response = await axios.get(`http://numbersapi.com/${number}/math`);
     const funFact = response.data;
-
-    // Check if the API doesn't have a fact for this number
-    if (funFact.includes("missing a fact")) {
-      funFact = `${number} is an integer.`
-      if (number < 0) {
-        funFact += " It's a negative number."
-      } else if (number > 0) {
-        funFact += " It's a positive number."
-      } else {
-        funFact += " It's neither positive nor negative."
-      }
-    }
-
 
     const result = {
       number,
