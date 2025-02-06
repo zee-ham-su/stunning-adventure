@@ -59,12 +59,6 @@ For development with auto-reload:
 npm run dev
 ```
 
-## Testing
-
-Run tests with:
-```bash
-npm test
-```
 
 ## Technical Details
 
