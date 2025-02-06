@@ -18,7 +18,8 @@ function isArmstrong(num) {
 
 function isPrime(num) {
   if (num <= 1) return false;
-  for (let i = 2; i <= Math.sqrt(num); i++) {
+  const limit = Math.sqrt(num);
+  for (let i = 2; i <= limit; i++) {
     if (num % i === 0) return false;
   }
   return true;
@@ -26,8 +27,9 @@ function isPrime(num) {
 
 function isPerfect(num) {
   if (num <= 1) return false;
+  const limit = Math.sqrt(num);
   let sum = 1;
-  for (let i = 2; i <= Math.sqrt(num); i++) {
+  for (let i = 2; i <= limit; i++) {
     if (num % i === 0) {
       sum += i;
       if (i !== num / i) sum += num / i;
@@ -35,7 +37,6 @@ function isPerfect(num) {
   }
   return sum === num;
 }
-
 function digitSum(num) {
   return String(Math.abs(num))
     .split('')
@@ -68,13 +69,12 @@ app.get('/api/classify-number', async (req, res) => {
   const number = parseInt(numberStr);
 
   // Input validation
-  if (!numberStr || isNaN(number)) {
+  if (!numberStr || isNaN(number) || number > Number.MAX_SAFE_INTEGER || number < Number.MIN_SAFE_INTEGER) {
     return res.status(400).json({
       number: numberStr,
       error: true
     });
   }
-
   try {
     // Calculate all properties first
     const result = {
