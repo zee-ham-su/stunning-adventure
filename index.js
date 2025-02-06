@@ -56,7 +56,10 @@ function getProperties(num) {
 
 // Create axios instance with timeout
 const numbersApi = axios.create({
-  timeout: 500 // 500ms timeout
+  timeout: 2000, // Increased to 2 seconds
+  headers: {
+    'Accept': 'text/plain'
+  }
 });
 
 // Main endpoint
@@ -73,33 +76,27 @@ app.get('/api/classify-number', async (req, res) => {
   }
 
   try {
-    // Fetch fun fact from Numbers API with timeout
-    const response = await numbersApi.get(`http://numbersapi.com/${number}/math`);
-    const funFact = response.data;
-
+    // Calculate all properties first
     const result = {
       number,
       is_prime: isPrime(number),
       is_perfect: isPerfect(number),
       properties: getProperties(number),
-      digit_sum: digitSum(number),
-      fun_fact: funFact
+      digit_sum: digitSum(number)
     };
+
+    try {
+      // Fetch fun fact from Numbers API with timeout
+      const response = await numbersApi.get(`http://numbersapi.com/${number}/math`);
+      result.fun_fact = response.data;
+    } catch (apiError) {
+      // Use a fallback fun fact if the API request fails
+      result.fun_fact = `${number} is an interesting number in mathematics.`;
+    }
 
     res.json(result);
   } catch (error) {
     console.error('Error:', error);
-    // If it's a timeout error, return a generic fun fact
-    if (error.code === 'ECONNABORTED') {
-      return res.json({
-        number,
-        is_prime: isPrime(number),
-        is_perfect: isPerfect(number),
-        properties: getProperties(number),
-        digit_sum: digitSum(number),
-        fun_fact: `${number} is an interesting number in mathematics.`
-      });
-    }
     res.status(500).json({
       number,
       error: true,
