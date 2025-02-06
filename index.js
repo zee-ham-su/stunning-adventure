@@ -17,15 +17,15 @@ function isArmstrong(num) {
 }
 
 function isPrime(num) {
-  if (Math.abs(num) <= 1) return false;
-  for (let i = 2; i <= Math.sqrt(Math.abs(num)); i++) {
-    if (Math.abs(num) % i === 0) return false;
+  if (num <= 1) return false; // Exclude negative numbers and 1
+  for (let i = 2; i <= Math.sqrt(num); i++) {
+    if (num % i === 0) return false;
   }
   return true;
 }
 
 function isPerfect(num) {
-  if (num <= 0) return false; // Perfect numbers are always positive
+  if (num <= 1) return false; // 1 is not a perfect number
   let sum = 1;
   for (let i = 2; i <= Math.sqrt(num); i++) {
     if (num % i === 0) {
@@ -47,7 +47,11 @@ function getProperties(num) {
   if (isArmstrong(num)) properties.push("armstrong");
   if (isPrime(num)) properties.push("prime");
   if (isPerfect(num)) properties.push("perfect");
-  properties.push(num % 2 === 0 ? "even" : "odd");
+  if (num % 2 === 0) {
+    properties.push("even");
+  } else {
+    properties.push("odd");
+  }
   return properties;
 }
 
